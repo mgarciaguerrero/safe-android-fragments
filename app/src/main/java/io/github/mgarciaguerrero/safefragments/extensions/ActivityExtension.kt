@@ -1,71 +1,75 @@
 package io.github.mgarciaguerrero.safefragments.extensions
 
-import android.support.annotation.AnimRes
-import android.support.annotation.IdRes
-import android.support.v4.app.Fragment
-import android.support.v7.app.AppCompatActivity
+import androidx.annotation.AnimRes
+import androidx.annotation.IdRes
+import androidx.fragment.app.Fragment
+import androidx.appcompat.app.AppCompatActivity
 
 /**
  * Method to replace the fragment. The [fragment] is added to the container view with id
  * [containerViewId] and a [tag]. The operation is performed by the supportFragmentManager.
+ * @return the fragment added.
  */
-fun AppCompatActivity.replaceFragmentSafely(fragment: Fragment,
-                                            tag: String,
-                                            allowStateLoss: Boolean = false,
-                                            @IdRes containerViewId: Int,
-                                            @AnimRes enterAnimation: Int = 0,
-                                            @AnimRes exitAnimation: Int = 0,
-                                            @AnimRes popEnterAnimation: Int = 0,
-                                            @AnimRes popExitAnimation: Int = 0) {
-    val ft = supportFragmentManager
-            .beginTransaction()
-            .setCustomAnimations(enterAnimation, exitAnimation, popEnterAnimation, popExitAnimation)
-            .replace(containerViewId, fragment, tag)
-    if (!supportFragmentManager.isStateSaved) {
-        ft.commit()
-    } else if (allowStateLoss) {
-        ft.commitAllowingStateLoss()
+fun <T : Fragment> AppCompatActivity.replaceFragmentSafely(
+    fragment: T,
+    tag: String,
+    @IdRes containerViewId: Int,
+    @AnimRes enterAnimation: Int = 0,
+    @AnimRes exitAnimation: Int = 0,
+    @AnimRes popEnterAnimation: Int = 0,
+    @AnimRes popExitAnimation: Int = 0,
+    commitNow: Boolean = false,
+    addToBackStack: Boolean = false
+): T {
+    val ft = supportFragmentManager.beginTransaction()
+    ft.setCustomAnimations(enterAnimation, exitAnimation, popEnterAnimation, popExitAnimation)
+    ft.replace(containerViewId, fragment, tag)
+    if (addToBackStack) {
+        ft.addToBackStack(tag)
     }
+    if (supportFragmentManager.isStateSaved) {
+        if (commitNow) ft.commitNowAllowingStateLoss() else ft.commitAllowingStateLoss()
+    } else {
+        if (commitNow) ft.commitNow() else ft.commit()
+    }
+    return fragment
 }
 
 /**
  * Method to add the fragment. The [fragment] is added to the container view with id
  * [containerViewId] and a [tag]. The operation is performed by the supportFragmentManager.
- * This method checks if fragment exists.
  * @return the fragment added.
  */
-fun <T : Fragment> AppCompatActivity.addFragmentSafelfy(fragment: T,
-                                                        tag: String,
-                                                        allowStateLoss: Boolean = false,
-                                                        @IdRes containerViewId: Int,
-                                                        @AnimRes enterAnimation: Int = 0,
-                                                        @AnimRes exitAnimation: Int = 0,
-                                                        @AnimRes popEnterAnimation: Int = 0,
-                                                        @AnimRes popExitAnimation: Int = 0): T {
-    if (!existsFragmentByTag(tag)) {
-        val ft = supportFragmentManager.beginTransaction()
-        ft.setCustomAnimations(enterAnimation, exitAnimation, popEnterAnimation, popExitAnimation)
-        ft.add(containerViewId, fragment, tag)
-        if (!supportFragmentManager.isStateSaved) {
-            ft.commit()
-        } else if (allowStateLoss) {
-            ft.commitAllowingStateLoss()
+fun <T : Fragment> AppCompatActivity.addFragmentSafely(
+    fragment: T,
+    tag: String,
+    @IdRes containerViewId: Int,
+    @AnimRes enterAnimation: Int = 0,
+    @AnimRes exitAnimation: Int = 0,
+    @AnimRes popEnterAnimation: Int = 0,
+    @AnimRes popExitAnimation: Int = 0,
+    commitNow: Boolean = false,
+    addToBackStack: Boolean = false
+): T {
+    return (findFragmentByTag(tag) as T?) ?: fragment.also {
+        supportFragmentManager.beginTransaction().apply {
+            setCustomAnimations(enterAnimation, exitAnimation, popEnterAnimation, popExitAnimation)
+            add(containerViewId, it, tag)
+            if (addToBackStack) {
+                addToBackStack(tag)
+            }
+            if (supportFragmentManager.isStateSaved) {
+                if (commitNow) commitNowAllowingStateLoss() else commitAllowingStateLoss()
+            } else {
+                if (commitNow) commitNow() else commit()
+            }
         }
-        return fragment
     }
-    return findFragmentByTag(tag) as T
-}
-
-/**
- * Method to check if fragment exists. The operation is performed by the supportFragmentManager.
- */
-fun AppCompatActivity.existsFragmentByTag(tag: String): Boolean {
-    return supportFragmentManager.findFragmentByTag(tag) != null
 }
 
 /**
  * Method to get fragment by tag. The operation is performed by the supportFragmentManager.
  */
-fun AppCompatActivity.findFragmentByTag(tag: String): Fragment? {
+fun AppCompatActivity.findFragmentByTag(tag: String): androidx.fragment.app.Fragment? {
     return supportFragmentManager.findFragmentByTag(tag)
 }
