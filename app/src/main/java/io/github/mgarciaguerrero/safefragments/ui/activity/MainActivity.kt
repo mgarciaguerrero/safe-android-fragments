@@ -1,10 +1,10 @@
 package io.github.mgarciaguerrero.safefragments.ui.activity
 
 import android.os.Bundle
-import android.support.v7.app.AppCompatActivity
+import androidx.appcompat.app.AppCompatActivity
 import android.widget.Button
 import io.github.mgarciaguerrero.safefragments.R
-import io.github.mgarciaguerrero.safefragments.extensions.addFragmentSafelfy
+import io.github.mgarciaguerrero.safefragments.extensions.addFragmentSafely
 import io.github.mgarciaguerrero.safefragments.extensions.replaceFragmentSafely
 import io.github.mgarciaguerrero.safefragments.ui.fragment.Fragment1
 import io.github.mgarciaguerrero.safefragments.ui.fragment.Fragment2
@@ -21,7 +21,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        button = findViewById<Button>(R.id.button)
+        button = findViewById(R.id.button)
         button.setOnClickListener {
             replaceFragment()
         }
@@ -32,7 +32,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun addFragment() {
-        addFragmentSafelfy(
+        addFragmentSafely(
                 fragment = Fragment1(),
                 tag = TAG_FRAGMENT_ONE,
                 containerViewId = R.id.content
@@ -43,8 +43,7 @@ class MainActivity : AppCompatActivity() {
         replaceFragmentSafely(
                 fragment = Fragment2(),
                 tag = TAG_FRAGMENT_TWO,
-                containerViewId = R.id.content,
-                allowStateLoss = true
+                containerViewId = R.id.content
         )
     }
 }
